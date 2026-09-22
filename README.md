@@ -5,7 +5,7 @@ I trade through Wealthsimple, and while its app is fine for placing trades, it d
 questions I actually have: how much room do I have left in my TFSA and FHSA this year, how
 concentrated is my portfolio once you count every account together, and how do two of my holdings
 actually compare. Wealthsimple shows individual accounts in isolation and has no contribution-room
-tracker at all, so I was doing that math by hand.
+tracker, so I was doing that math manually.
 
 SnapTrade's OAuth product looked like a good fit and a good way to learn OAuth/OIDC properly:
 sign in once with the SnapTrade account I already use, and read (never trade) across every
