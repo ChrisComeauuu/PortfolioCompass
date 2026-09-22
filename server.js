@@ -328,8 +328,14 @@ async function fetchActivities(s, accountId) {
   return all;
 }
 
-const CONTRIB = /^(CONTRIBUTION|DEPOSIT)$/i;
-const WITHDRAW = /^WITHDRAWAL$/i;
+// Confirmed against a real account via /api/debug-activity-types: Wealthsimple/SnapTrade labels
+// funding an FHSA as INTERNAL_CASH_TRANSFER_IN, not CONTRIBUTION or DEPOSIT — those literal words
+// only showed up for the TFSA. Treating cash-transfer-in/out as a contribution/withdrawal is right
+// for money crossing in from an external source (e.g. a linked bank account), but SnapTrade's type
+// alone can't distinguish that from an in-kind transfer of an existing registered account from
+// another institution, which shouldn't use room. If that ever applies to you, check CRA My Account.
+const CONTRIB = /^(CONTRIBUTION|DEPOSIT|INTERNAL_CASH_TRANSFER_IN)$/i;
+const WITHDRAW = /^(WITHDRAWAL|INTERNAL_CASH_TRANSFER_OUT)$/i;
 function toFlows(activities, accountId) {
   const contributions = [], withdrawals = [];
   activities.forEach((a, i) => {
@@ -348,37 +354,6 @@ function toFlows(activities, accountId) {
   });
   return { contributions, withdrawals };
 }
-
-// TEMPORARY diagnostic: what does this account's real activity data actually look like?
-// Returns only raw type labels + counts and basic shape checks — never an amount, date, or
-// description. Remove this route once contribution matching is confirmed against real data.
-app.get("/api/debug-activity-types", async (req, res) => {
-  const s = getSession(req);
-  if (!s) return res.status(401).json({ error: "not_signed_in" });
-  try {
-    const accounts = (await snap(s, "/accounts")).filter((a) => classifyAccount(a) !== "other");
-    const out = await Promise.all(
-      accounts.map(async (a) => {
-        let activities;
-        try { activities = await fetchActivities(s, a.id); }
-        catch (e) { return { accountType: classifyAccount(a), error: e.status || "error" }; }
-        const rawTypes = {};
-        let missingDate = 0, missingOrZeroAmount = 0;
-        for (const act of activities) {
-          const t = String(act.type ?? "(no type field)");
-          rawTypes[t] = (rawTypes[t] || 0) + 1;
-          if (!(act.trade_date || act.settlement_date)) missingDate++;
-          if (!num(act.amount)) missingOrZeroAmount++;
-        }
-        return { accountType: classifyAccount(a), activityCount: activities.length, rawTypes, missingDate, missingOrZeroAmount };
-      })
-    );
-    res.json({ accounts: out });
-  } catch (e) {
-    console.error(e.message);
-    res.status(502).json({ error: "snaptrade_error" });
-  }
-});
 
 app.get("/api/room", async (req, res) => {
   const s = getSession(req);
