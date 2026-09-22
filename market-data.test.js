@@ -179,3 +179,10 @@ test("service: a premium-only ticker is reported as such and does not lock the b
   assert.equal(r.error, "premium");
   assert.ok(r.budget.used < 5);
 });
+
+test("service: status().lastError remembers the provider's real wording for any error, so a wrong classification can be diagnosed against real text", async () => {
+  const { svc } = mkService({ limit: 5, fetchFn: async () => ({ json: async () => ({ Information: "Some wording we haven't seen before." }) }) });
+  assert.equal(svc.status().lastError, null);
+  await svc.get("AAPL");
+  assert.deepEqual(svc.status().lastError, { classifiedAs: "unavailable", raw: "Some wording we haven't seen before.", at: Date.parse("2026-09-20T12:00:00Z") });
+});
