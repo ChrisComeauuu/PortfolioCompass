@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portfolio Compass</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --text:#141821; --muted:#6a7280; --line:#e4e7ec; --accent:#2557d6; --up:#0f8a4f; --down:#c5341f; --warn:#b76e00; --action:#6b46e5; --action-fg:#ffffff; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0e1116; --card:#171b22; --text:#e9ecf1; --muted:#8b93a1; --line:#262c36; --accent:#6d97ff; --up:#3ecf8e; --down:#ff7a66; --warn:#f0b040; --action:#a99bff; --action-fg:#1a1440; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.5 system-ui,-apple-system,sans-serif; }
+  main { max-width:960px; margin:0 auto; padding:24px 16px 64px; }
+  header { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:24px; }
+  #who { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  h1 { font-size:20px; margin:0; } h2 { font-size:15px; margin:0 0 12px; }
+  .muted { color:var(--muted); } .up { color:var(--up); } .down { color:var(--down); }
+  button, .btn { background:var(--accent); color:#fff; border:0; border-radius:8px; padding:10px 18px; font:inherit; cursor:pointer; text-decoration:none; display:inline-block; }
+  a { color:var(--accent); }
+  a.linkbtn { display:inline-block; text-decoration:none; background:transparent; color:var(--muted); border:1px solid var(--line); border-radius:8px; padding:6px 12px; font:inherit; }
+  a.linkbtn:hover { color:var(--text); border-color:var(--muted); }
+  button.ghost { background:transparent; color:var(--muted); border:1px solid var(--line); padding:6px 12px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px; margin-bottom:16px; }
+  .hero { text-align:center; padding:64px 16px; } .hero p { max-width:460px; margin:8px auto 24px; }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px; margin-bottom:16px; }
+  .stat { container-type:inline-size; min-width:0; }
+  .stat .v { font-size:clamp(17px, 11cqw, 24px); font-weight:600; font-variant-numeric:tabular-nums; }
+  .amt[data-cur]::before { content:attr(data-cur); font-size:.6em; font-weight:500; letter-spacing:.05em; color:var(--muted); margin-right:.3em; }
+  .stat .v .amt[data-cur]::before { display:block; margin:0 0 -.15em; font-size:12px; }
+  .bar { display:grid; grid-template-columns:70px 1fr 56px; gap:10px; align-items:center; margin:6px 0; font-variant-numeric:tabular-nums; }
+  .track { background:var(--line); border-radius:4px; height:10px; overflow:hidden; } .fill { background:var(--accent); height:100%; border-radius:4px; }
+  table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+  th,td { text-align:right; padding:8px 6px; border-bottom:1px solid var(--line); } th:first-child,td:first-child { text-align:left; }
+  th { color:var(--muted); font-weight:500; font-size:13px; }
+  .scroll { overflow-x:auto; }
+  .note { border-left:3px solid var(--warn); padding:8px 12px; margin:6px 0; background:color-mix(in srgb,var(--warn) 10%,transparent); border-radius:0 6px 6px 0; }
+  .room-head { display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; align-items:baseline; }
+  .room-big { font-size:22px; font-weight:600; font-variant-numeric:tabular-nums; }
+  .pbar { height:10px; border-radius:5px; background:var(--line); overflow:hidden; margin:8px 0 4px; } .pbar > div { height:100%; background:var(--up); border-radius:5px; } .pbar.over > div { background:var(--down); }
+  .badge { font-size:12px; border:1px solid var(--line); border-radius:99px; padding:1px 8px; color:var(--muted); }
+  .setup { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px; margin:10px 0; }
+  .setup label { display:flex; flex-direction:column; gap:4px; font-size:13px; color:var(--muted); }
+  input { font:inherit; padding:8px; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--text); min-width:0; }
+  details { margin-top:10px; } summary { cursor:pointer; color:var(--muted); }
+  .seg { display:inline-flex; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  .seg button { background:transparent; color:var(--muted); border-radius:0; padding:6px 14px; } .seg button.on { background:var(--accent); color:#fff; }
+  .hide-btn { float:right; background:transparent; color:var(--muted); border:1px solid var(--line); border-radius:99px; padding:4px 14px; font-size:13px; transition:background .15s,color .15s,border-color .15s; }
+  .hide-btn:hover { background:var(--bg); color:var(--text); border-color:var(--muted); }
+  input[type=checkbox] { width:16px; height:16px; padding:0; margin:0; accent-color:var(--up); flex:none; }
+  .setup label.check { flex-direction:row; align-items:center; align-self:end; gap:8px; color:var(--text); min-height:38px; }
+  .alert { border:1px solid var(--down); background:color-mix(in srgb,var(--down) 12%,transparent); border-radius:12px; padding:14px 16px; margin-bottom:16px; }
+  .alert strong { color:var(--down); }
+  .amt { white-space:nowrap; }
+  select { font:inherit; padding:8px; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--text); min-width:0; max-width:100%; }
+  .vs-head { display:grid; grid-template-columns:1fr auto 1fr; gap:10px; align-items:center; margin-bottom:8px; }
+  .vs-head select { width:100%; } .vs-badge { font-weight:700; letter-spacing:.08em; color:var(--muted); font-size:13px; }
+  .vs-names { display:grid; grid-template-columns:1fr auto 1fr; gap:10px; text-align:center; margin:4px 0 8px; }
+  .vs-names .t { font-size:20px; font-weight:700; } .vs-names .n { font-size:12px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .vs-row { display:grid; grid-template-columns:1fr 1.3fr 1fr; gap:8px; align-items:center; text-align:center; padding:8px 0; border-top:1px solid var(--line); font-variant-numeric:tabular-nums; }
+  .vs-row .lbl { font-size:13px; color:var(--muted); }
+  .vs-cell { padding:6px 8px; border-radius:8px; border:1px solid transparent; }
+  .vs-cell.lead { background:color-mix(in srgb,var(--up) 14%,transparent); border-color:color-mix(in srgb,var(--up) 45%,transparent); font-weight:600; }
+  .vs-tools { margin-top:14px; padding-top:12px; border-top:1px solid var(--line); display:grid; gap:8px; }
+  .vs-add { display:flex; gap:8px; flex-wrap:wrap; align-items:center; } .vs-add input { flex:1 1 180px; min-width:0; }
+  .chips { display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
+  .chip { display:inline-flex; align-items:center; gap:2px; border:1px solid var(--line); border-radius:99px; padding:2px 4px 2px 12px; font-size:13px; }
+  .chip button { background:transparent; color:var(--muted); border:0; padding:2px 8px; font:inherit; font-size:16px; line-height:1; cursor:pointer; border-radius:99px; }
+  .chip button:hover { color:var(--text); background:var(--bg); }
+  .vs-load { background:var(--action); color:var(--action-fg); border:0; border-radius:8px; padding:10px 14px; font:inherit; cursor:pointer; }
+  .vs-load:hover:not(:disabled) { filter:brightness(1.08); }
+  .vs-load:disabled { opacity:.6; cursor:wait; }
+  @media (max-width:520px) {
+    .vs-row { grid-template-columns:1fr 1fr; grid-template-areas:"lbl lbl" "a b"; row-gap:4px; }
+    .vs-row .lbl { grid-area:lbl; } .vs-row .a { grid-area:a; } .vs-row .b { grid-area:b; }
+  }
+  .loading { display:flex; align-items:center; gap:12px; color:var(--muted); }
+  .spin { width:18px; height:18px; border:2px solid var(--line); border-top-color:var(--accent); border-radius:50%; animation:spin .8s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .spin { animation-duration:3s; } }
+  .note.ok { border-color:var(--up); background:color-mix(in srgb,var(--up) 10%,transparent); }
+</style>
+</head>
+<body>
+<main>
+  <header><h1>Portfolio Compass</h1><div id="who"></div></header>
+  <div id="app"><div class="card loading"><div class="spin"></div><span>Loading…</span></div></div>
+  <footer class="muted" style="margin-top:32px;font-size:13px;text-align:center"><a href="/privacy.html" style="color:inherit">Privacy</a> · Estimates only, not financial advice</footer>
+</main>
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+const money = (n, c = "CAD", signed = false) => {
+  // The currency code is drawn by CSS (::before) as a small label, e.g. "CAD $1,000.00", so it never
+  // crowds the number. data-orig holds just the number text, which Hide amounts masks digit by digit.
+  let t;
+  try { t = new Intl.NumberFormat("en-US", { style:"currency", currency:c, currencyDisplay:"narrowSymbol" }).format(n); }
+  catch { t = Number(n).toFixed(2); }
+  if (signed && n >= 0) t = "+" + t;
+  return `<span class="amt" data-cur="${c}" data-orig="${t}">${t}</span>`;
+};
+// Display currency (CAD by default) and USD->CAD rate for the switcher.
+let priv = false;
+try { priv = localStorage.getItem("priv") === "1"; } catch {}
+// Privacy mode replaces every digit in an amount with "*" (e.g. CAD $***,***.**).
+function mask() {
+  document.querySelectorAll(".amt").forEach((el) => {
+    const want = priv ? el.dataset.orig.replace(/\d/g, "*") : el.dataset.orig;
+    if (el.textContent !== want) el.textContent = want;
+  });
+}
+const maskObserver = new MutationObserver(() => {
+  maskObserver.disconnect(); // our own edits must not retrigger us
+  mask();
+  maskObserver.observe(document.body, { childList: true, subtree: true });
+});
+maskObserver.observe(document.body, { childList: true, subtree: true });
+function applyPriv() {
+  const b = $("#priv"); if (b) b.textContent = priv ? "Show amounts" : "Hide amounts";
+  mask();
+}
+function togglePriv() { priv = !priv; try { localStorage.setItem("priv", priv ? "1" : "0"); } catch {} applyPriv(); }
+let disp = "CAD", fx = null, accountsData = [], vis = {}, allocN = 10;
+try { const v = localStorage.getItem("allocN"); if (v === "5" || v === "all") allocN = v === "5" ? 5 : "all"; } catch {}
+function setAlloc(n) { allocN = n; try { localStorage.setItem("allocN", String(n)); } catch {} setCur(disp); }
+try {
+  const raw = JSON.parse(localStorage.getItem("hidden") || "{}");
+  vis = Array.isArray(raw) ? Object.fromEntries(raw.map((id) => [id, true])) : raw; // migrate old format
+} catch {}
+const saveVis = () => { try { localStorage.setItem("hidden", JSON.stringify(vis)); } catch {} };
+// An account is "empty" when it has no holdings and no money in it.
+const isEmpty = (a) => !a.positions.length && a.cash.every((c) => !c.amount) && !a.total;
+const isHidden = (a) => (a.id in vis ? vis[a.id] : isEmpty(a));
+function hideAcct(id) { vis[id] = true; saveVis(); setCur(disp); }
+// Brings every hidden account back (including empty ones hidden automatically).
+function restoreHidden() { accountsData.filter(isHidden).forEach((a) => (vis[a.id] = false)); saveVis(); setCur(disp); }
+try { disp = localStorage.getItem("cur") === "USD" ? "USD" : "CAD"; } catch {}
+const conv = (n, from) => {
+  if (!from || from === disp) return n;
+  if (!fx) return n;
+  if (from === "USD" && disp === "CAD") return n * fx.usdToCad;
+  if (from === "CAD" && disp === "USD") return n / fx.usdToCad;
+  return n; // other currencies are shown unconverted
+};
+const fmt = (n, from) => money(conv(n, from), disp);
+const pct = (n) => (n * 100).toFixed(1) + "%";
+const errors = { access_denied:"Access was denied.", invalid_state:"Sign-in expired. Please try again.", login_failed:"Sign-in failed. Please try again." };
+
+async function main() {
+  const err = new URLSearchParams(location.search).get("error");
+  const me = await (await fetch("/api/me")).json();
+  if (!me.signedIn) return landing(err);
+  try { const st = await fetch("/api/market-status"); if (st.ok) { const j = await st.json(); marketOn = !!j.enabled; marketBudget = j.budget; } } catch {}
+  try { matchMod = await import("/head-to-head.js"); } catch (e) { console.error("head-to-head module failed to load", e); }
+  $("#who").innerHTML = `<span class="muted">${esc(me.email || "")}</span> <a class="ghost linkbtn" href="https://dashboard.snaptrade.com/" target="_blank" rel="noopener noreferrer">Manage connections</a> <button class="ghost" id="priv" onclick="togglePriv()"></button> <button class="ghost" id="out">Disconnect</button>`;
+  applyPriv();
+  $("#out").onclick = async () => { await fetch("/auth/logout", { method:"POST" }); location.href = "/"; };
+  $("#app").innerHTML = `<div class="card loading"><div class="spin"></div><span>Loading your accounts. This can take a few seconds while your brokerage data syncs.</span></div>`;
+  const r = await fetch("/api/portfolio");
+  if (r.status === 401) return landing();
+  if (!r.ok) return ($("#app").innerHTML = `<div class="card">Couldn't load your portfolio. Try again shortly.</div>`);
+  accountsData = (await r.json()).accounts;
+  fx = await fetch("/api/fx").then((x) => (x.ok ? x.json() : null)).catch(() => null);
+  render(accountsData);
+  loadRoom();
+}
+
+// ---- Contribution room ----
+let roomSettings = {};
+async function loadRoom() {
+  const [rr, sr] = await Promise.all([fetch("/api/room"), fetch("/api/room-settings")]);
+  if (!rr.ok) return;
+  roomSettings = sr.ok ? await sr.json() : roomSettings;
+  const { accounts, fhsaSuggestion } = await rr.json();
+  if (!accounts.length) return;
+  let box = $("#room");
+  if (!box) { box = document.createElement("div"); box.id = "room"; $("#app").prepend(box); }
+  box.innerHTML = roomCard(accounts, fhsaSuggestion);
+  $("#saveRoom")?.addEventListener("click", saveRoom);
+  $("#delRoom")?.addEventListener("click", deleteRoom);
+}
+
+// Estimated CRA tax: 1% of the excess per month. RRSP has a $2,000 lifetime buffer.
+function excessOf(a) {
+  if (a.needsSetup || a.error || a.room == null || a.room >= 0) return 0;
+  return a.type === "RRSP" ? Math.max(0, -a.room - 2000) : -a.room;
+}
+function overAlert(accounts) {
+  const items = accounts.map((a) => ({ a, x: excessOf(a) })).filter((i) => i.x > 0);
+  if (!items.length) return "";
+  return `<div class="alert" role="alert"><strong>Possible over-contribution</strong>
+    ${items.map(({ a, x }) => `<div>${esc(a.type)}: about ${money(x)} over your estimated room. CRA's tax is 1% per month on the excess, roughly ${money(x * 0.01)} a month until it's withdrawn or room opens up.</div>`).join("")}
+    <div class="muted" style="font-size:13px;margin-top:6px">This is an estimate. Check CRA My Account. Deposits that are transfers between your own accounts may be counted as contributions.</div></div>`;
+}
+
+function roomRow(a) {
+  if (a.error) return `<div class="card"><h2>${esc(a.type)} <span class="muted">${esc(a.name)}</span></h2><p class="muted">Couldn't load activity for this account.</p></div>`;
+  const head = `<div class="room-head"><h2>${esc(a.type)} <span class="muted">${esc(a.name || "")} ${esc(a.institution || "")}</span></h2><span class="badge">estimate</span></div>`;
+  if (a.needsSetup) return `<div class="card">${head}<p class="muted">Add your details below to estimate this account's room.</p></div>`;
+  // Bar fills as you use up your total accumulated room (not just this year's limit).
+  const used = a.totalRoom > 0 ? Math.min(100, Math.max(0, ((a.totalRoom - a.room) / a.totalRoom) * 100)) : 0;
+  const warn = a.over ? `<div class="note">Your estimate is negative. Over-contributions are taxed at 1% per month, so check CRA My Account.</div>`
+    : a.withinBuffer ? `<div class="note">Within the $2,000 RRSP over-contribution buffer. Avoid adding more.</div>` : "";
+  const life = a.lifetimeLeft != null ? `<div class="muted">${money(a.lifetimeLeft)} lifetime FHSA room left</div>` : "";
+  return `<div class="card">${head}
+    <div class="room-big ${a.over ? "down" : ""}">${money(a.room)} <span class="muted" style="font-size:14px;font-weight:400">room left</span></div>${life}
+    <div class="pbar ${a.over ? "over" : ""}"><div style="width:${used}%"></div></div>
+    <div class="muted">${money(a.contributedThisYear)} contributed this year</div>
+    ${warn}
+  </div>`;
+}
+
+function roomCard(accounts, sug) {
+  const thisYear = new Date().getFullYear();
+  const age = roomSettings.birthYear ? thisYear - roomSettings.birthYear - (roomSettings.birthdayPassed === false ? 1 : 0) : "";
+  const types = new Set(accounts.map((a) => a.type));
+  const v = (x) => (x == null ? "" : x);
+  const f = (id, label, val, type = "number", extra = "") => `<label>${label}<input id="${id}" type="${type}" value="${esc(v(val))}" ${extra}></label>`;
+  return `<h2>Contribution room</h2>${overAlert(accounts)}${accounts.map(roomRow).join("")}
+    <div class="card"><h2>Your details</h2><div class="setup">
+      ${types.has("TFSA") ? f("sAge", "Your current age (TFSA)", age, "number", 'min="18" max="120" placeholder="e.g. 24"') + `<label class="check"><input id="sBd" type="checkbox" ${roomSettings.birthdayPassed === false ? "" : "checked"}> I've already had my birthday this year</label>` : ""}
+      ${types.has("FHSA") ? f("sfh", "Year you opened your FHSA", roomSettings.fhsaOpenYear, "number", `placeholder="${sug ? sug.year : "e.g. 2024"}"`) + (sug ? `<span class="muted" style="font-size:13px;align-self:end">Using ${sug.year}, suggested from your ${esc(sug.source)}. Enter a year to override.</span>` : "") : ""}
+      ${types.has("RRSP") ? f("srAmt", "CRA RRSP deduction limit", roomSettings.rrspLimit?.amount) + f("srDate", "…as of date", roomSettings.rrspLimit?.asOf, "date") : ""}
+    </div>
+    ${types.has("TFSA") ? `<details><summary>Advanced (optional): use your CRA TFSA room instead</summary>
+      <p class="muted" style="font-size:13px">Your age gives an estimate that assumes you've lived in Canada since you turned 18. If you have your exact figure from CRA My Account, enter it with the date it was calculated to replace the estimate.</p>
+      <div class="setup">${f("stAmt", "CRA TFSA room", roomSettings.confirmedRoom?.amount) + f("stDate", "…as of date", roomSettings.confirmedRoom?.asOf, "date")}</div></details>` : ""}
+    <button id="saveRoom" style="margin-top:12px">Save</button> <button class="hide-btn" style="float:none;margin-left:8px" id="delRoom">Delete saved settings</button>
+    <p class="muted" style="font-size:13px">Estimates use federal annual limits plus your SnapTrade deposits and withdrawals. They aren't CRA figures; confirm in CRA My Account. Contributions made at other institutions aren't visible here.</p></div>`;
+}
+
+async function deleteRoom() {
+  if (!confirm("Delete your saved room settings from the server? Your room estimates will need your details again.")) return;
+  await fetch("/api/room-settings", { method: "DELETE" });
+  roomSettings = {};
+  await loadRoom();
+}
+const numOrNull = (id) => { const e = $("#" + id); return e && e.value !== "" ? Number(e.value) : null; };
+async function putSettings(next) {
+  const r = await fetch("/api/room-settings", { method:"PUT", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(next) });
+  if (r.ok) roomSettings = await r.json();
+  await loadRoom();
+}
+function saveRoom() {
+  const next = { ...roomSettings };
+  const pair = (a, d) => (numOrNull(a) != null && $("#" + d)?.value ? { amount: numOrNull(a), asOf: $("#" + d).value } : undefined);
+  if ($("#sAge")) {
+    const age = numOrNull("sAge"), passed = $("#sBd").checked;
+    next.birthYear = age ? new Date().getFullYear() - age - (passed ? 0 : 1) : undefined;
+    next.birthdayPassed = passed;
+    next.turned18Year = undefined;
+  }
+  if ($("#stAmt")) next.confirmedRoom = pair("stAmt", "stDate");
+  if ($("#sfh")) next.fhsaOpenYear = numOrNull("sfh") ?? undefined;
+  if ($("#srAmt")) next.rrspLimit = pair("srAmt", "srDate");
+  putSettings(next);
+}
+
+function landing(err) {
+  $("#app").innerHTML = `<div class="card hero">
+    <h1>See your whole portfolio at a glance</h1>
+    <p class="muted">Connect SnapTrade to view holdings across all your brokerages, with allocation and concentration checks. Read-only: this app can never place trades.</p>
+    ${err ? `<p class="down">${esc(errors[err] || "Something went wrong.")}</p>` : ""}
+    <a class="btn" href="/auth/login">Sign in with SnapTrade</a>
+    <p class="muted" style="font-size:13px;margin-top:20px">Hosted on a free plan, so the first load after a quiet period can take up to a minute.</p></div>`;
+}
+
+// ---- Head to head ----
+let matchMod = null, matchA = "", matchB = "", currentHoldings = [];
+let marketOn = false, marketBudget = null, marketBusy = false;
+let market = {}, marketErr = {}, peeked = new Set(), custom = [];
+let addNote = null; // { text, ok } shown after adding a ticker
+const MAX_ADDED = 10;
+try {
+  matchA = localStorage.getItem("matchA") || ""; matchB = localStorage.getItem("matchB") || "";
+  custom = JSON.parse(localStorage.getItem("customTickers") || "[]").filter((t) => typeof t === "string").slice(0, 10);
+} catch {}
+const isRegisteredAcct = (a) => /TFSA|FHSA|RRSP|\bRSP\b|TAX[- ]?FREE|FIRST HOME/i.test(`${a.type || ""} ${a.name || ""}`);
+const saveMatch = () => { try { localStorage.setItem("matchA", matchA); localStorage.setItem("matchB", matchB); localStorage.setItem("customTickers", JSON.stringify(custom)); } catch {} };
+
+// Your holdings plus any tickers you've added, each with market stats once loaded.
+function fighters() {
+  const mine = currentHoldings.map((h) => ({ ...h, market: market[h.ticker] || null }));
+  const extra = custom.filter((t) => !mine.some((h) => h.ticker === t)).map((t) => ({ ticker: t, name: "", owned: false, kind: null, currency: null, market: market[t] || null }));
+  return [...mine, ...extra];
+}
+function shownPair() {
+  const list = fighters();
+  const pair = matchMod && matchMod.pickPair(list, matchA, matchB);
+  return pair ? pair.map((t) => list.find((f) => f.ticker === t)) : null;
+}
+function setMatch(which, ticker) { addNote = null; if (which === "a") matchA = ticker; else matchB = ticker; saveMatch(); setCur(disp); }
+function shuffleMatch() {
+  const pair = matchMod && matchMod.shufflePair(fighters());
+  if (!pair) return;
+  addNote = null;
+  [matchA, matchB] = pair; saveMatch(); setCur(disp);
+}
+function addTicker() {
+  const input = $("#customTicker"); if (!input) return;
+  const t = input.value.trim().toUpperCase();
+  delete marketErr._add; addNote = null;
+  if (!/^[A-Z0-9]{1,10}([.-][A-Z0-9]{1,4})?$/.test(t)) { marketErr._add = "bad_symbol"; return setCur(disp); }
+  if (fighters().some((f) => f.ticker === t)) {
+    addNote = { text: `${t} is already in your list, so it's selected.`, ok: false };
+  } else if (custom.length >= MAX_ADDED) {
+    addNote = { text: `You can add up to ${MAX_ADDED} tickers. Remove one first.`, ok: false };
+    return setCur(disp);
+  } else {
+    custom.push(t);
+    addNote = { ok: true, text: fighters().length < 2 ? `${t} added. Add one more ticker to start a matchup.` : `${t} added. Press Load market data to see how it compares.` };
+  }
+  matchB = t; if (matchA === t) matchA = ""; saveMatch(); setCur(disp);
+}
+function removeTicker(t) {
+  custom = custom.filter((x) => x !== t);
+  if (matchA === t) matchA = "";
+  if (matchB === t) matchB = "";
+  addNote = null; saveMatch(); setCur(disp);
+}
+function clearAdded() { custom = []; matchA = ""; matchB = ""; addNote = null; saveMatch(); setCur(disp); }
+
+async function fetchMarket(f, peek) {
+  const qs = new URLSearchParams({ symbol: f.ticker });
+  if (f.currency === "CAD") qs.set("cad", "1");
+  if (peek) qs.set("peek", "1");
+  try {
+    const r = await fetch("/api/market?" + qs);
+    const j = await r.json().catch(() => ({}));
+    if (j.budget) marketBudget = j.budget;
+    if (r.ok) { market[f.ticker] = j; delete marketErr[f.ticker]; return true; }
+    if (!(peek && j.error === "not_cached")) marketErr[f.ticker] = j.error || "unavailable";
+  } catch { if (!peek) marketErr[f.ticker] = "unavailable"; }
+  return false;
+}
+// Cached answers are free, so quietly pick them up for the pair on screen.
+async function peekShown() {
+  const pair = marketOn && shownPair(); if (!pair) return;
+  let got = false;
+  for (const f of pair) if (!f.market && !peeked.has(f.ticker)) { peeked.add(f.ticker); got = (await fetchMarket(f, true)) || got; }
+  if (got) setCur(disp);
+}
+async function loadMarket() {
+  const pair = shownPair(); if (!pair || marketBusy) return;
+  marketBusy = true; setCur(disp);
+  for (const f of pair) if (!f.market) await fetchMarket(f, false);
+  marketBusy = false; setCur(disp);
+}
+
+const MARKET_MSG = {
+  daily_limit: "Today's free lookups are used up. Cached results still work, and it resets tomorrow.",
+  not_found: "wasn't found. Try the exchange suffix, e.g. VFV.TO.",
+  bad_symbol: "isn't a valid ticker.",
+  no_key: "Market data isn't set up.",
+  busy: "Alpha Vantage asked us to slow down. Wait a few seconds and press Load again.",
+  premium: "needs a paid Alpha Vantage plan, so it can't be looked up for free.",
+  unavailable: "couldn't be loaded right now.",
+};
+function vsValue(r, side) {
+  const v = r[side];
+  if (r.kind === "money") return money(v, disp);
+  if (r.kind === "close") return money(v, side === "a" ? r.curA : r.curB);
+  if (r.kind === "signed") return money(v, disp, true);
+  if (r.kind === "pct") return pct(v);
+  if (r.kind === "spct") return (v >= 0 ? "+" : "") + pct(v);
+  if (r.kind === "units") return `<span class="amt" data-orig="${+v.toFixed(4)}">${+v.toFixed(4)}</span>`;
+  return esc(String(v));
+}
+function marketControls(pair) {
+  if (!marketOn) return "";
+  const missing = pair ? pair.filter((f) => !f.market).length : 0;
+  const errs = (pair || []).filter((f) => marketErr[f.ticker]).map((f) => `<div class="note">${esc(f.ticker)} ${MARKET_MSG[marketErr[f.ticker]] || MARKET_MSG.unavailable}</div>`).join("");
+  const chips = custom.length ? `<div class="chips"><span class="muted" style="font-size:12px">Added:</span>${custom.map((t) => `<span class="chip">${esc(t)}<button aria-label="Remove ${esc(t)}" data-t="${esc(t)}" onclick="removeTicker(this.dataset.t)">×</button></span>`).join("")}</div>` : "";
+  const noteHtml = addNote && !(addNote.ok && !pair) ? `<div class="note ${addNote.ok ? "ok" : ""}">${esc(addNote.text)}</div>` : "";
+  const addErr = marketErr._add ? `<div class="note">That doesn't look like a ticker. Use letters and numbers, e.g. MSFT or VFV.TO.</div>` : "";
+  const budget = marketBudget ? `Lookups today: ${marketBudget.used} of ${marketBudget.limit}. Results you've already loaded are cached and free.` : "";
+  const asOf = pair && pair.every((f) => f.market) ? `Prices as of ${esc(pair.map((f) => f.market.asOf).sort().at(-1))} (end of day, from Alpha Vantage).` : "";
+  return `<div class="vs-tools">
+      <div class="vs-add"><input id="customTicker" placeholder="Add any ticker, e.g. MSFT or VFV.TO" maxlength="16" onkeydown="if(event.key==='Enter')addTicker()"><button class="hide-btn" style="float:none" onclick="addTicker()">Add</button>${custom.length ? `<button class="hide-btn" style="float:none" onclick="clearAdded()">Clear added</button>` : ""}</div>
+      ${missing ? `<button class="vs-load" ${marketBusy ? "disabled" : ""} onclick="loadMarket()">${marketBusy ? "Loading…" : `Load market data (uses up to ${missing} lookup${missing === 1 ? "" : "s"})`}</button>` : ""}
+      ${chips}${noteHtml}${addErr}${errs}
+      <div class="muted" style="font-size:12px">${[asOf, budget].filter(Boolean).join(" ")}</div></div>`;
+}
+function matchupCard() {
+  if (!matchMod) return "";
+  const list = fighters();
+  if (list.length < 2 && !marketOn) return "";
+  const pair = shownPair();
+  if (!pair) return `<div class="card"><h2>Head to head</h2><p class="muted">${list.length === 1 ? `Only ${esc(list[0].ticker)} so far. Add one more ticker to start a matchup.` : "Add two tickers to start a matchup."}</p>${marketControls(null)}</div>`;
+  const [a, b] = pair;
+  matchA = a.ticker; matchB = b.ticker; // remember the pair actually shown, so one pick never shifts the other
+  const { rows } = matchMod.compare(a, b);
+  const group = (label, items, sel) => items.length ? `<optgroup label="${label}">${items.map((f) => `<option value="${esc(f.ticker)}" ${f.ticker === sel ? "selected" : ""}>${esc(f.ticker)}</option>`).join("")}</optgroup>` : "";
+  const opts = (sel) => group("Your holdings", list.filter((f) => f.owned), sel) + group("Added tickers", list.filter((f) => !f.owned), sel);
+
+  const hint = !rows.length ? `<p class="muted" style="text-align:center;margin:12px 0">These two share no stats yet. ${marketOn ? "Load market data to compare price moves." : ""}</p>` : "";
+  return `<div class="card"><div class="room-head"><h2>Head to head</h2><button class="hide-btn" style="float:none" onclick="shuffleMatch()">Shuffle</button></div>
+    <div class="vs-head"><select aria-label="First stock" onchange="setMatch('a', this.value)">${opts(a.ticker)}</select><span class="vs-badge">VS</span><select aria-label="Second stock" onchange="setMatch('b', this.value)">${opts(b.ticker)}</select></div>
+    <div class="vs-names"><div><div class="t">${esc(a.ticker)}</div><div class="n">${esc(a.name)}</div></div><span></span><div><div class="t">${esc(b.ticker)}</div><div class="n">${esc(b.name)}</div></div></div>
+    ${rows.map((r) => `<div class="vs-row"><div class="vs-cell a ${r.edge === "a" ? "lead" : ""}">${vsValue(r, "a")}</div><div class="lbl">${esc(r.label)}</div><div class="vs-cell b ${r.edge === "b" ? "lead" : ""}">${vsValue(r, "b")}</div></div>`).join("")}
+    ${hint}
+    ${marketControls(pair)}
+    <p class="muted" style="font-size:12px;text-align:center;margin:8px 0 0">Highlighted = higher on that row (volatility, price and similar rows are information only). Market data may be delayed. A comparison of facts, not a recommendation.</p></div>`;
+}
+
+function setCur(c) {
+  disp = c;
+  try { localStorage.setItem("cur", c); } catch {}
+  const room = $("#room");
+  render(accountsData);
+  if (room) $("#app").prepend(room);
+}
+
+function render(allAccounts) {
+  const accounts = allAccounts.filter((a) => !isHidden(a));
+  const hiddenCount = allAccounts.length - accounts.length;
+  if (!accounts.length && !hiddenCount) return ($("#app").innerHTML = `<div class="card">No brokerage accounts connected yet. <a href="https://dashboard.snaptrade.com/" target="_blank" rel="noopener noreferrer">Connect one in your SnapTrade dashboard</a>, then refresh.</div>`);
+  const all = accounts.flatMap((a) => a.positions.map((p) => ({ ...p, v: conv(p.value, p.currency), c: conv(p.costBasis, p.currency), g: p.pnl == null ? 0 : conv(p.pnl, p.currency) })));
+  const holdings = all.reduce((s, p) => s + p.v, 0);
+  const cash = accounts.reduce((s, a) => s + a.cash.reduce((t, c) => t + conv(c.amount, c.currency), 0), 0);
+  const total = holdings + cash;
+  const withCost = all.filter((p) => p.pnl != null);
+  const pnl = withCost.reduce((s, p) => s + p.g, 0);
+  const cost = withCost.reduce((s, p) => s + p.c, 0);
+  const pnlNote = !all.length ? "no holdings loaded" : !withCost.length ? "your broker doesn't share cost basis" : withCost.length < all.length ? `${cost ? pct(pnl / cost) : "n/a"} on cost · ${withCost.length} of ${all.length} holdings` : `${cost ? pct(pnl / cost) : "n/a"} on cost`;
+
+  const bySym = {};
+  for (const p of all) bySym[p.ticker] = (bySym[p.ticker] || 0) + p.v;
+  const alloc = Object.entries(bySym);
+  if (cash > 0) alloc.push(["Cash", cash]);
+  alloc.sort((a, b) => b[1] - a[1]);
+
+
+  currentHoldings = matchMod ? matchMod.buildHoldings(accounts, conv, isRegisteredAcct, total) : [];
+  const warnings = accounts.flatMap((a) => a.warnings.map((w) => `${esc(a.name)}: ${esc(w)}`));
+  const mixed = new Set(all.map((p) => p.currency)); mixed.delete(disp);
+  const unconverted = [...mixed].filter((c) => c !== "USD" && c !== "CAD");
+  const fxNote = fx
+    ? `1 USD = ${fx.usdToCad.toFixed(4)} CAD (ECB, ${esc(fx.date)})`
+    : "Exchange rate unavailable, so amounts in other currencies are not converted.";
+  const toggle = `<div class="seg" role="group" aria-label="Currency">${["CAD", "USD"].map((c) => `<button class="${c === disp ? "on" : ""}" onclick="setCur('${c}')">${c}</button>`).join("")}</div>`;
+
+  $("#app").innerHTML = `
+    <div class="room-head" style="margin-bottom:12px">${toggle}<span class="muted" style="font-size:13px">${fxNote}${unconverted.length ? ` · ${esc(unconverted.join(", "))} shown unconverted` : ""}</span></div>
+    ${warnings.map((w) => `<div class="note">${w}</div>`).join("")}
+    <div class="stats">
+      <div class="card stat"><div class="muted">Total value</div><div class="v">${money(total, disp)}</div></div>
+      <div class="card stat"><div class="muted">Holdings / Cash</div><div class="v">${money(holdings, disp)}</div><div class="muted">${money(cash, disp)} cash</div></div>
+      <div class="card stat"><div class="muted">Unrealized P&amp;L</div><div class="v ${withCost.length ? (pnl >= 0 ? "up" : "down") : "muted"}">${withCost.length ? money(pnl, disp, true) : "–"}</div><div class="muted">${pnlNote}</div></div>
+      <div class="card stat"><div class="muted">Accounts</div><div class="v">${accounts.length}</div></div>
+    </div>
+    ${matchupCard()}
+    <div class="card"><div class="room-head"><h2>Allocation</h2>${alloc.length > 5 ? `<div class="seg" role="group" aria-label="Holdings shown">${[[5, "Top 5"], [10, "Top 10"], ["all", "All"]].map(([n, l]) => `<button class="${n === allocN ? "on" : ""}" onclick="setAlloc(${typeof n === 'string' ? `'${n}'` : n})">${l}</button>`).join("")}</div>` : ""}</div>${alloc.length ? (allocN === "all" ? alloc : alloc.slice(0, allocN)).map(([k, v]) => `
+      <div class="bar"><span>${esc(k)}</span><div class="track"><div class="fill" style="width:${total ? (v / total) * 100 : 0}%"></div></div><span>${pct(total ? v / total : 0)}</span></div>`).join("") : `<p class="muted">No holdings found.</p>`}</div>
+    ${accounts.map((a) => `<div class="card"><h2>${esc(a.name)} <span class="muted">${esc(a.institution)}${a.number ? " · " + esc(a.number) : ""}</span>${a.type ? ` <span class="badge">${esc(a.type)}</span>` : ""}${a.status && a.status !== "open" ? ` <span class="badge">${esc(a.status)}</span>` : ""}<button class="hide-btn" onclick="hideAcct('${esc(a.id)}')">Hide</button></h2>
+      <div class="muted" style="margin:-6px 0 8px">Balance: ${a.total != null ? fmt(a.total, a.currency) : money(a.cash.reduce((t, c) => t + conv(c.amount, c.currency), 0), disp)}${a.positions.length ? "" : " · cash only, no securities"}</div>
+      <div class="scroll"><table><thead><tr><th>Symbol</th><th>Units</th><th>Price</th><th>Value</th><th>P&amp;L</th></tr></thead><tbody>
+      ${a.positions.map((p) => { const g = p.pnl == null ? null : p.pnl; return `<tr><td><strong>${esc(p.ticker)}</strong> <span class="muted">${esc(p.name).slice(0, 28)}</span></td><td><span class="amt" data-orig="${+p.units.toFixed(4)}">${+p.units.toFixed(4)}</span></td><td>${fmt(p.price, p.currency)}</td><td>${fmt(p.value, p.currency)}</td><td class="${(g || 0) >= 0 ? "up" : "down"}">${g == null ? "–" : fmt(g, p.currency)}</td></tr>`; }).join("") || `<tr><td colspan="5" class="muted">No positions</td></tr>`}
+      </tbody></table></div></div>`).join("")}
+    ${allAccounts.length - accounts.length ? `<p><button class="hide-btn" style="float:none" onclick="restoreHidden()">Show ${allAccounts.length - accounts.length} hidden account${allAccounts.length - accounts.length === 1 ? "" : "s"}</button></p>` : ""}`;
+  setTimeout(peekShown, 0);
+}
+
+main();
+</script>
+</body>
+</html>

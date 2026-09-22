@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy - Portfolio Compass</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --text:#141821; --muted:#6a7280; --line:#e4e7ec; --accent:#2557d6; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0e1116; --card:#171b22; --text:#e9ecf1; --muted:#8b93a1; --line:#262c36; --accent:#6d97ff; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.6 system-ui,-apple-system,sans-serif; }
+  main { max-width:720px; margin:0 auto; padding:24px 16px 64px; }
+  h1 { font-size:22px; margin:0 0 4px; } h2 { font-size:16px; margin:24px 0 6px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:8px 20px 20px; margin-top:16px; }
+  .muted { color:var(--muted); } a { color:var(--accent); } ul { padding-left:20px; } li { margin:4px 0; }
+</style>
+</head>
+<body>
+<main>
+  <p><a href="/">&larr; Back to Portfolio Compass</a></p>
+  <h1>Privacy</h1>
+  <p class="muted">Portfolio Compass is a small demo app built with SnapTrade's OAuth. This page explains what it does with your data.</p>
+  <div class="card">
+    <h2>What the app can see</h2>
+    <p>You sign in with your SnapTrade account and approve three permissions: <strong>openid</strong>, <strong>email</strong> and <strong>read</strong>. The app can view your connected brokerage accounts, balances, positions, and deposit and withdrawal activity, plus your verified email address. It is read-only: it cannot place trades or move money.</p>
+    <h2>What is stored, and where</h2>
+    <ul>
+      <li><strong>Access tokens:</strong> kept in the server's memory only, tied to your session. They are discarded when you disconnect, when the session expires (about 10 hours) or when the server restarts.</li>
+      <li><strong>Holdings and balances:</strong> fetched when you load the page and shown to you. They are not saved.</li>
+      <li><strong>Your saved settings:</strong> your birth year, FHSA opening year, and any CRA figures you enter, stored on the server under your SnapTrade user ID so your room estimate is remembered. No balances or holdings are included.</li>
+      <li><strong>In your browser:</strong> a session cookie, and preferences (currency, hidden accounts, allocation view, hide-amounts mode) in local storage. These never leave your device.</li>
+    </ul>
+    <h2>Who else gets data</h2>
+    <p>The app looks up the USD/CAD exchange rate from a public service (Frankfurter, using European Central Bank rates). That request contains no information about you.</p>
+    <p>If market data is switched on, then when you press "Load market data" in the Head to head card, the app sends the <strong>ticker symbols</strong> you're comparing (for example MSFT or XEQT.TO) to Alpha Vantage to get end-of-day prices. Only the ticker symbol is sent: never your name, email, balances, account details or how much of a stock you hold. Results are cached on the server for 12 hours and shared between visitors; the cache holds public price data and no personal information.</p>
+    <p>There are no analytics, ads or trackers, and your data is not sold or shared.</p>
+    <h2>Your controls</h2>
+    <ul>
+      <li><strong>Disconnect:</strong> the button at the top right revokes the app's access at SnapTrade and ends your session.</li>
+      <li><strong>Delete saved settings:</strong> the button in the "Your details" card erases your stored settings from the server.</li>
+      <li><strong>Manage connections:</strong> the "Manage connections" link opens your SnapTrade dashboard, where you can add, repair or remove brokerage connections, and remove this app's access at any time.</li>
+    </ul>
+    <h2>Not financial advice</h2>
+    <p>Contribution room figures are estimates built from public annual limits and the activity SnapTrade can see. They are not CRA figures and don't include contributions made elsewhere. Confirm your room in CRA My Account before contributing.</p>
+  </div>
+</main>
+</body>
+</html>

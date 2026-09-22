@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: portfolio-compass
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: SNAPTRADE_CLIENT_ID
+        sync: false
+      - key: SNAPTRADE_CLIENT_SECRET
+        sync: false
+      - key: REDIRECT_URI
+        sync: false
+      - key: ALPHAVANTAGE_KEY
+        sync: false
