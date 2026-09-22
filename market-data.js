@@ -115,14 +115,6 @@ export function createMarketService({ apiKey, fetchFn = fetch, now = () => Date.
       const json = await callProvider(alpha);
       if (json === null) return { ok: false, error: "unavailable" };
       const err = classifyError(json);
-      // TEMPORARY diagnostic: remember the provider's own words for whatever it just classified as
-      // an error, so a wrong classification can be confirmed and fixed against real text instead of
-      // guessed at again. This is Alpha Vantage's own boilerplate about their service, never
-      // anything about the caller. Remove once classifyError is confirmed correct against real data.
-      if (err) {
-        state.lastError = { classifiedAs: err, raw: String(json?.Information ?? json?.Note ?? json?.["Error Message"] ?? "(no text field)"), at: now() };
-        save();
-      }
       if (err === "burst") {
         if (attempt === 0) { await sleep(RETRY_WAIT_MS); continue; } // we were too quick: wait and retry once
         state.budget.used = Math.max(0, state.budget.used - 1); // it never returned data, so give the lookup back
@@ -159,5 +151,5 @@ export function createMarketService({ apiKey, fetchFn = fetch, now = () => Date.
     return { ...r, cached: false, budget: budget() };
   }
 
-  return { get, status: () => ({ enabled: !!apiKey, budget: budget(), lastError: state.lastError || null }) };
+  return { get, status: () => ({ enabled: !!apiKey, budget: budget() }) };
 }
