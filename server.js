@@ -212,19 +212,25 @@ function normalizePosition(p, fallbackCurrency) {
   };
 }
 
+// Drop closed/archived accounts, and de-duplicate an account connected to SnapTrade twice
+// (the same real brokerage account shares an institution_account_id in that case). Shared by
+// every route that lists accounts, so a fix here can't accidentally apply to only one of them.
+function dedupeAccounts(accounts) {
+  const seen = new Set();
+  return accounts.filter((a) => {
+    if (["closed", "archived"].includes(String(a.status).toLowerCase())) return false;
+    const key = a.institution_account_id && `${a.institution_name}:${a.institution_account_id}`;
+    if (key && seen.has(key)) return false;
+    if (key) seen.add(key);
+    return true;
+  });
+}
+
 app.get("/api/portfolio", async (req, res) => {
   const s = getSession(req);
   if (!s) return res.status(401).json({ error: "not_signed_in" });
   try {
-    const seen = new Set();
-    const accounts = (await snap(s, "/accounts")).filter((a) => {
-      if (["closed", "archived"].includes(String(a.status).toLowerCase())) return false;
-      // The same brokerage account connected twice shares an institution_account_id.
-      const key = a.institution_account_id && `${a.institution_name}:${a.institution_account_id}`;
-      if (key && seen.has(key)) return false;
-      if (key) seen.add(key);
-      return true;
-    });
+    const accounts = dedupeAccounts(await snap(s, "/accounts"));
     const out = await Promise.all(
       accounts.map(async (a) => {
         const currency = curCode(a.balance?.total?.currency) || "CAD";
@@ -360,7 +366,7 @@ app.get("/api/room", async (req, res) => {
   if (!s) return res.status(401).json({ error: "not_signed_in" });
   try {
     const settings = allSettings[s.sub] || {};
-    const accounts = (await snap(s, "/accounts")).filter((a) => classifyAccount(a) !== "other");
+    const accounts = dedupeAccounts(await snap(s, "/accounts")).filter((a) => classifyAccount(a) !== "other");
 
     // Suggest an FHSA open year: the broker's opening_date if provided, else the first
     // transaction SnapTrade has seen. Your own entry always wins.
