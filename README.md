@@ -1,5 +1,21 @@
 # Portfolio Compass
 
+## Why I built this
+I trade through Wealthsimple, and while its app is fine for placing trades, it doesn't answer the
+questions I actually have: how much room do I have left in my TFSA and FHSA this year, how
+concentrated is my portfolio once you count every account together, and how do two of my holdings
+actually compare. Wealthsimple shows individual accounts in isolation and has no contribution-room
+tracker at all, so I was doing that math by hand.
+
+SnapTrade's OAuth product looked like a good fit and a good way to learn OAuth/OIDC properly:
+sign in once with the SnapTrade account I already use, and read (never trade) across every
+connected account from one place. So I built Portfolio Compass: a small read-only app that
+aggregates holdings across accounts, estimates TFSA/FHSA/RRSP room from public CRA limits plus my
+own deposit and withdrawal activity (since SnapTrade has no CRA data), and adds a "head to head"
+view for comparing two stocks. It's also the project I used to learn the OAuth authorization-code +
+PKCE flow end to end rather than just reading about it.
+
+## What it is
 Read-only SnapTrade OAuth app (authorization code + PKCE). Sign in with SnapTrade, then see
 holdings across brokerages, allocation, P&L, and concentration insights.
 
@@ -21,9 +37,11 @@ Note: free instances sleep and sessions are in-memory, so users may need to sign
 
 ## Contribution room (TFSA / FHSA / RRSP)
 SnapTrade has no CRA room data, so the app shows an **estimate**: federal annual limits (`contribution-room.js`) plus
-deposits/withdrawals from SnapTrade account activity. Enter the year you turned 18, FHSA open year, or your
-CRA-confirmed room with an "as of" date for better accuracy. Deposits that are really transfers between your own
-accounts can be excluded in the UI. Contributions made at other institutions aren't visible.
+deposits/withdrawals from SnapTrade account activity. Enter your current age, FHSA open year (suggested
+automatically from the account's activity when available), or your CRA-confirmed room with an "as of" date for
+better accuracy. Transfers between your own accounts can be misread as new contributions, and contributions made
+at other institutions aren't visible at all, so treat the number as a starting point and confirm it in CRA My
+Account before relying on it.
 Settings persist to `data/room-settings.json` (set `SETTINGS_FILE` to change); on Render's free tier this resets on redeploy.
 Run tests with `node --test`.
 
