@@ -2,7 +2,12 @@
 // The free tier allows ~25 requests/day, so everything here is built around not wasting calls:
 // results are cached, in-flight requests are shared, and a persisted daily budget stops us early.
 
+import crypto from "node:crypto";
+
 const SUFFIX = { ".TO": ".TRT", ".V": ".TRV", ".TRT": ".TRT", ".TRV": ".TRV" };
+// A short hash of the key, never the key itself — lets the counter tell "same key, new day" apart
+// from "the key changed" without ever persisting or logging the real value.
+const fingerprint = (key) => (key ? crypto.createHash("sha256").update(key).digest("hex").slice(0, 12) : null);
 
 // SnapTrade/Wealthsimple write TSX tickers as XEQT.TO; Alpha Vantage wants XEQT.TRT.
 export function toAlpha(symbol, cadHint = false) {
@@ -73,12 +78,16 @@ const RETRY_WAIT_MS = 1500;
 export function createMarketService({ apiKey, fetchFn = fetch, now = () => Date.now(), sleep = realSleep, limit = 25, ttlMs = 12 * 3600e3, store = { load: () => ({}), save: () => {} } }) {
   const state = store.load() || {};
   state.cache ||= {};
-  state.budget ||= { day: "", used: 0 };
+  state.budget ||= { day: "", used: 0, keyId: null };
   const inflight = new Map();
+  const keyId = fingerprint(apiKey);
 
   const today = () => new Date(now()).toISOString().slice(0, 10);
   const budget = () => {
-    if (state.budget.day !== today()) state.budget = { day: today(), used: 0 };
+    // Reset on a new day, or when the configured key itself has changed — Alpha Vantage's real
+    // limit is per key, so a fresh key genuinely has its own untouched 25, and our local counter
+    // (which otherwise has no way to know a key was swapped) needs to start over with it.
+    if (state.budget.day !== today() || state.budget.keyId !== keyId) state.budget = { day: today(), used: 0, keyId };
     return { used: state.budget.used, limit };
   };
   const fresh = (e) => e && now() - e.at < (e.data ? ttlMs : NEG_TTL_MS);

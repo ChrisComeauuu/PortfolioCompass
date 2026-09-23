@@ -179,3 +179,16 @@ test("service: a premium-only ticker is reported as such and does not lock the b
   assert.equal(r.error, "premium");
   assert.ok(r.budget.used < 5);
 });
+
+test("service: swapping in a new API key gets its own fresh daily budget, on the same persisted file", async () => {
+  let saved = null;
+  const store = { load: () => saved ?? {}, save: (s) => (saved = JSON.parse(JSON.stringify(s))) };
+  const { svc: oldKeySvc } = mkService({ apiKey: "OLD_KEY", limit: 2, store, fetchFn: async () => ({ json: async () => ({ Information: "standard API rate limit is 25 requests per day" }) }) });
+  await oldKeySvc.get("AAPL");
+  assert.equal(oldKeySvc.status().budget.used, 2); // old key: exhausted
+
+  const { svc: newKeySvc } = mkService({ apiKey: "BRAND_NEW_KEY", limit: 2, store });
+  assert.equal(newKeySvc.status().budget.used, 0); // new key: fresh, despite the same store
+  const r = await newKeySvc.get("AAPL");
+  assert.equal(r.ok, true);
+});
