@@ -88,22 +88,27 @@
 <script>
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
-const money = (n, c = "CAD", signed = false) => {
+const money = (n, c = "CAD", signed = false, isPublic = false) => {
   // The currency code is drawn by CSS (::before) as a small label, e.g. "CAD $1,000.00", so it never
-  // crowds the number. data-orig holds just the number text, which Hide amounts masks digit by digit.
+  // crowds the number. data-orig holds just the number text, which Hide amounts masks digit by digit —
+  // unless isPublic is set, e.g. a stock's market price, which reveals nothing about you and reads
+  // better left visible even in privacy mode.
   let t;
   try { t = new Intl.NumberFormat("en-US", { style:"currency", currency:c, currencyDisplay:"narrowSymbol" }).format(n); }
   catch { t = Number(n).toFixed(2); }
   if (signed && n >= 0) t = "+" + t;
-  return `<span class="amt" data-cur="${c}" data-orig="${t}">${t}</span>`;
+  return `<span class="amt" data-cur="${c}" data-orig="${t}"${isPublic ? ' data-public="1"' : ""}>${t}</span>`;
 };
+// A maskable percentage, for personal figures like "share of your portfolio" — plain pct() below stays
+// unmasked, for public market stats like volatility that reveal nothing about you.
+const pctAmt = (n) => { const t = pct(n); return `<span class="amt" data-orig="${t}">${t}</span>`; };
 // Display currency (CAD by default) and USD->CAD rate for the switcher.
 let priv = false;
 try { priv = localStorage.getItem("priv") === "1"; } catch {}
 // Privacy mode replaces every digit in an amount with "*" (e.g. CAD $***,***.**).
 function mask() {
   document.querySelectorAll(".amt").forEach((el) => {
-    const want = priv ? el.dataset.orig.replace(/\d/g, "*") : el.dataset.orig;
+    const want = priv && el.dataset.public !== "1" ? el.dataset.orig.replace(/\d/g, "*") : el.dataset.orig;
     if (el.textContent !== want) el.textContent = want;
   });
 }
@@ -354,14 +359,19 @@ const MARKET_MSG = {
   premium: "needs a paid Alpha Vantage plan, so it can't be looked up for free.",
   unavailable: "couldn't be loaded right now.",
 };
+// Rows that describe the STOCK as a public market instrument (its price, how it's moved, how
+// volatile it is) reveal nothing about you and stay visible even with Hide amounts on. Rows that
+// describe YOUR position in it (value, weight, gain, units held) are personal and get masked.
+const H2H_PUBLIC_ROWS = new Set(["close", "change1m", "change3m", "volatility", "rangePos", "price"]);
 function vsValue(r, side) {
   const v = r[side];
-  if (r.kind === "money") return money(v, disp);
-  if (r.kind === "close") return money(v, side === "a" ? r.curA : r.curB);
-  if (r.kind === "signed") return money(v, disp, true);
-  if (r.kind === "pct") return pct(v);
-  if (r.kind === "spct") return (v >= 0 ? "+" : "") + pct(v);
-  if (r.kind === "units") return `<span class="amt" data-orig="${+v.toFixed(4)}">${+v.toFixed(4)}</span>`;
+  const isPublic = H2H_PUBLIC_ROWS.has(r.key);
+  if (r.kind === "money") return money(v, disp, false, isPublic);
+  if (r.kind === "close") return money(v, side === "a" ? r.curA : r.curB, false, isPublic);
+  if (r.kind === "signed") return money(v, disp, true, isPublic);
+  if (r.kind === "pct") return isPublic ? pct(v) : pctAmt(v);
+  if (r.kind === "spct") { const t = (v >= 0 ? "+" : "") + pct(v); return isPublic ? t : `<span class="amt" data-orig="${t}">${t}</span>`; }
+  if (r.kind === "units") return `<span class="amt" data-orig="${+v.toFixed(4)}">${+v.toFixed(4)}</span>`; // always personal
   return esc(String(v));
 }
 function marketControls(pair) {
