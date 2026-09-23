@@ -334,7 +334,7 @@ async function fetchActivities(s, accountId) {
   return all;
 }
 
-// Confirmed against a real account via /api/debug-activity-types: Wealthsimple/SnapTrade labels
+// Confirmed against a real account's activity data: Wealthsimple/SnapTrade labels
 // funding an FHSA as INTERNAL_CASH_TRANSFER_IN, not CONTRIBUTION or DEPOSIT — those literal words
 // only showed up for the TFSA. Treating cash-transfer-in/out as a contribution/withdrawal is right
 // for money crossing in from an external source (e.g. a linked bank account), but SnapTrade's type
