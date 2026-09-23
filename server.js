@@ -431,7 +431,8 @@ app.get("/api/market-status", (req, res) => {
   res.json(market.status());
 });
 // TEMPORARY diagnostic route — see market-data.js resetBudget(). Remove once done debugging.
-app.post("/api/debug-market-reset", (req, res) => {
+// GET (not POST) on purpose: needs to be visitable as a plain URL for quick testing.
+app.get("/api/debug-market-reset", (req, res) => {
   if (!getSession(req)) return res.status(401).json({ error: "not_signed_in" });
   market.resetBudget();
   res.json(market.status());
