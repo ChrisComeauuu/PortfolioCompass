@@ -430,6 +430,12 @@ app.get("/api/market-status", (req, res) => {
   if (!getSession(req)) return res.status(401).json({ error: "not_signed_in" });
   res.json(market.status());
 });
+// TEMPORARY diagnostic route — see market-data.js resetBudget(). Remove once done debugging.
+app.post("/api/debug-market-reset", (req, res) => {
+  if (!getSession(req)) return res.status(401).json({ error: "not_signed_in" });
+  market.resetBudget();
+  res.json(market.status());
+});
 app.get("/api/market", async (req, res) => {
   // Sign-in is required so strangers can't use up the shared daily lookups.
   if (!getSession(req)) return res.status(401).json({ error: "not_signed_in" });

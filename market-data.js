@@ -124,6 +124,15 @@ export function createMarketService({ apiKey, fetchFn = fetch, now = () => Date.
       const json = await callProvider(alpha);
       if (json === null) return { ok: false, error: "unavailable" };
       const err = classifyError(json);
+      // TEMPORARY diagnostic: remember the provider's own words for the last error, with the
+      // configured key stripped out first (Alpha Vantage's real daily-limit message echoes it back
+      // as plain text — that bit it us once already). Remove once classifyError is confirmed
+      // correct against a genuinely fresh key's real response.
+      if (err) {
+        const raw = String(json?.Information ?? json?.Note ?? json?.["Error Message"] ?? "(no text field)");
+        state.lastError = { classifiedAs: err, raw: apiKey ? raw.split(apiKey).join("[REDACTED]") : raw, at: now() };
+        save();
+      }
       if (err === "burst") {
         if (attempt === 0) { await sleep(RETRY_WAIT_MS); continue; } // we were too quick: wait and retry once
         state.budget.used = Math.max(0, state.budget.used - 1); // it never returned data, so give the lookup back
@@ -160,5 +169,12 @@ export function createMarketService({ apiKey, fetchFn = fetch, now = () => Date.
     return { ...r, cached: false, budget: budget() };
   }
 
-  return { get, status: () => ({ enabled: !!apiKey, budget: budget() }) };
+  // TEMPORARY diagnostic: force the counter back to 0 for the currently configured key, so a fix
+  // can be tested against a real fresh call without waiting on a day change or another key swap.
+  // Remove alongside lastError once classifyError is confirmed correct.
+  function resetBudget() {
+    state.budget = { day: today(), used: 0, keyId };
+    save();
+  }
+  return { get, resetBudget, status: () => ({ enabled: !!apiKey, budget: budget(), lastError: state.lastError || null }) };
 }
