@@ -15,6 +15,21 @@ own deposit and withdrawal activity (since SnapTrade has no CRA data), and adds 
 view for comparing two stocks. It's also the project I used to learn the OAuth authorization-code +
 PKCE flow end to end rather than just reading about it.
 
+## Screenshots
+Amounts are hidden with the app's built-in "Show amounts" privacy toggle.
+
+**Contribution room**: TFSA/FHSA room estimates, plus your details for a more accurate number
+![Contribution room](screenshots/contribution-room.png)
+
+**Head to head**: compare two holdings row by row
+![Head to head](screenshots/head-to-head.png)
+
+**Allocation**: every holding's share of the whole portfolio, across all accounts
+![Allocation](screenshots/allocation.png)
+
+**Accounts**: holdings in each connected account
+![Accounts](screenshots/accounts.png)
+
 ## What it is
 Read-only SnapTrade OAuth app (authorization code + PKCE). Sign in with SnapTrade, then see
 holdings across brokerages, allocation, P&L, and concentration insights.
